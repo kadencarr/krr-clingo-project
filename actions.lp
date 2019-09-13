@@ -51,4 +51,4 @@ not holds(R, S, T + 1) :- occurs(object(robot,R), putdown, T), holds(R, S, T).
 % minimize the number of moves
 %#maximize{T : count(T)}.
 
-#show occurs
+#show occurs/3.

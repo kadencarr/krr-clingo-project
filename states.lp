@@ -30,7 +30,7 @@ shelf(S, X,Y, 0) :- init(object(shelf, S), value(at,pair(X,Y))).
 product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
 
 %init(object(order,'o'),value(line,pair('i','u'))).
-order(O, I,U) :- init(object(order, O), value(at,pair(I,U))).  % I is the product, U is the number of units ordered
+order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
 
 %init(object(order,'o'),value(pickingStation,'p')).
 order(O, P) :- init(object(order, O), value(pickingStation, P)).
@@ -39,15 +39,18 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 %constraints
 
 % each robot has exactly one position at each time step
-:- #count{S : robot(R, X,Y, T)} != 1, R=1..r, T=0..h.
+:- {robot(R, X,Y, T)} != 1, R=1..r, T=0..h.
 
 % no two occupants of the same square
-:- robot(R1, X1,Y1, T1), robot(R2, X2,Y2, T2), X1=X2, Y1=Y2, R1=R2, T1=T2.
+:- robot(R1, X,Y, T1), robot(R2, X,Y, T2), R1=R2, T1=T2.
+
+% robots cannot swap squares
+:- robot(R1, X1,Y1, T1), robot(R2, X2,Y2, T1), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1).
 
 % each robot can only hold one shelf
 :- holds(R1, S1, T1), holds(R2, S2, T2), R1=R2, S1!=S2, T1=T2.
 
-% robot can't go into a square with a shelf if it's already carrying a shelf\
+% robot can't go into a square with a shelf if it's already carrying a shelf
 :- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S, T), shelf(S, X3,Y3, T).
 
 
