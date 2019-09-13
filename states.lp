@@ -48,10 +48,10 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 :- robot(R1, X1,Y1, T1), robot(R2, X2,Y2, T1), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1).
 
 % each robot can only hold one shelf
-:- holds(R1, S1, T1), holds(R2, S2, T2), R1=R2, S1!=S2, T1=T2.
+:- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
 % robot can't go into a square with a shelf if it's already carrying a shelf
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S, T), shelf(S, X3,Y3, T).
+:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T).
 
 
 

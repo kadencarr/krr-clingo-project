@@ -1,9 +1,4 @@
 
-%at each time instant, each robot must have a unique location
-:- #count{X,Y : object(robot, R), value(at,pair(X,Y))} != 1, robot(R), T=0..h. 
-
-
-
 %occurs(object(robot,'r'),move('dx','dy'),'t').
 robot(R, X + dx, Y + dy, T + 1) :- occurs(object(robot,R), move(dx, dy), T).
 
@@ -23,7 +18,7 @@ holds(R, S, T + 1) :- holds(R, S, T), not not holds(R, S, T + 1), T=0..h-1.
 holds(R, S, T) :- occurs(object(robot,R), pickup, T), robot(R, X1,Y1, T1), shelf(S, X2,Y2, T2), X1=X2, Y1=Y2, T1=T2.
 
 % can't pick something up that is not in the same square
-:- occurs(object(robot,R), pickup, T), shelf(S, X1,Y1), robot(R, X2,Y2, T), |X1 - X2| + |Y1 - Y2| != 0.
+:- occurs(object(robot,R), pickup, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
 
 %occurs(object(robot,'r'),deliver('o','i','u'),'t').
 
@@ -33,10 +28,10 @@ holds(R, S, T) :- occurs(object(robot,R), pickup, T), robot(R, X1,Y1, T1), shelf
 not holds(R, S, T + 1) :- occurs(object(robot,R), putdown, T), holds(R, S, T).
 
 % can't put something down if it's not being carried
-:- occurs(object(robot,R1), putdown, T1), holds(R2, S, T2), R1=R2, T1=T2.
+:- occurs(object(robot,R), putdown, T), not holds(R, S, T).
 
 % can't put something down in a highway square
-:- occurs(object(robot,R), putdown, T0), robot(R, X1,Y1, T1), highway(H, X2,Y2), X1=X2, Y1=Y2, T0=T1.
+:- occurs(object(robot,R), putdown, T), robot(R, X,Y, T), highway(H, X,Y).
 
 
 
