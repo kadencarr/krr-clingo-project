@@ -54,6 +54,9 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 % each robot can only hold one shelf
 :- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
+% can't hold both nothing and something
+:- holds(R, S, T), holds(R, T).
+
 % if a robot is holding a shelf, the shelf has the same location as the robot
 shelf(S, X,Y, T) :- robot(R, X,Y, T), holds(R, S, T).
 
@@ -78,6 +81,7 @@ occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, T + 1) :- putdown(R, S, T).
+not holds(R, S, T + 1) :- putdown(R, S, T).
 occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
@@ -99,7 +103,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
 % robot can't go into a square with a shelf if it's already carrying a shelf
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T).
+:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T + 1), S1 != S2.
 
 
 % pickup ----------------------------------------------------------------------------------------------------
@@ -120,7 +124,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2), deliver(R, O, I,U2, T).
 
 
-% only deliver if the robot is holding a shelf that matches the order, and is at the pickup station
+% only deliver if the robot is holding a shelf that matches the order, and is at the picking station
 %deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2).
 
 
@@ -153,8 +157,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {robot(R, X,Y, T)} 1, node(X,Y), T=0..h.
 :- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
-:- {holds(R, H, T); holds(R, T)} != 1, object(robot, R), T=0..h.
-not holds(R, T) :- holds(R, H, T), T=0..h.
+:- {holds(R, S, T); holds(R, T)} != 1, object(robot, R), T=0..h.
+not holds(R, T) :- holds(R, S, T), T=0..h.
 
 
 
@@ -165,7 +169,6 @@ not holds(R, T) :- holds(R, H, T), T=0..h.
 
 % pickup
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
-{holds(R, S, T); holds(R, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
 {deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
@@ -178,6 +181,7 @@ not holds(R, T) :- holds(R, H, T), T=0..h.
 {robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=0..h-1.
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=0..h-1.
 {holds(R, T + 1)} :- holds(R, T), T=0..h-1.
+%{holds(R, S, T + 1)} :- holds(R, S, T), T=0..h-1.
 holds(R, S, T + 1) :- holds(R, S, T), not not holds(R, T + 1), T=0..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=0..h-1.
 
