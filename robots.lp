@@ -103,13 +103,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
 % robot can't go into a square with a shelf if it's already carrying a shelf
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T + 1), S1 != S2.
+:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T + 1), S1 = S2.
 
 
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
-:- pickup(R, S, T), robot(R, X,Y, T), shelf(S, X,Y, T).
+:- pickup(R, S, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
 
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T).
@@ -180,6 +180,7 @@ not holds(R, T) :- holds(R, S, T), T=0..h.
 % everything stays where it was if no movement is indicated (commonsense law of inertia)
 {robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=0..h-1.
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=0..h-1.
+holds(R, T + 1) :- holds(R, T), not not holds(R, T + 1), T=0..h-1.
 holds(R, S, T + 1) :- holds(R, S, T), not not holds(R, S, T + 1), T=0..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=0..h-1.
 
