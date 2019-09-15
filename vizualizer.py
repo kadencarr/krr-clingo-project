@@ -75,6 +75,26 @@ occurs(object(robot,2),move(1,0),12)
 occurs(object(robot,1),deliver(2,2,1),13)
 """
 
+
+class Robot:
+    def __init__(self, obj_id, x, y):
+        self.id = obj_id
+        self.x = x
+        self.y = y
+        self.carrying = False
+
+class Shelf:
+    def __init__(self, obj_id, x, y):
+        self.id = obj_id
+        self.x = x
+        self.y = y
+
+class Highway:
+    def __init__(self, obj_id, x, y):
+        self.id = obj_id
+        self.x = x
+        self.y = y
+
 ##################################################
 # Parse
 ##################################################
@@ -96,7 +116,18 @@ for action_string in action_list:
     })
 
 # init
-
+init_list = init.split()
+highway_list = []
+robot_list = []
+shelf_list = []
+for init_string in init_list:
+    params = [x for x in re.findall('-?\d*',init_string) if x != '']
+    if 'highway' in init_string:
+        highway_list.append(Highway(params[0], params[1], params[2]))
+    if 'robot' in init_string:
+        robot_list.append(Robot(params[0], params[1], params[2]))
+    if 'shelf' in init_string:
+        shelf_list.append(Shelf(params[0], params[1], params[2]))
 
 ##################################################
 # Visualize
