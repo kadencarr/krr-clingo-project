@@ -77,23 +77,26 @@ occurs(object(robot,1),deliver(2,2,1),13)
 
 
 class Robot:
-    def __init__(self, obj_id, x, y):
-        self.id = obj_id
+    def __init__(self, x, y):
         self.x = x
         self.y = y
         self.carrying = False
+    def __repr__(self):
+        return 'Robot at ' + str(self.x) + ',' + str(self.y)
 
 class Shelf:
-    def __init__(self, obj_id, x, y):
-        self.id = obj_id
+    def __init__(self, x, y):
         self.x = x
         self.y = y
+    def __repr__(self):
+        return 'Shelf at ' + str(self.x) + ',' + str(self.y)
 
 class Highway:
-    def __init__(self, obj_id, x, y):
-        self.id = obj_id
+    def __init__(self, x, y):
         self.x = x
         self.y = y
+    def __repr__(self):
+        return 'Highway at ' + str(self.x) + ',' + str(self.y)
 
 ##################################################
 # Parse
@@ -101,6 +104,7 @@ class Highway:
 # output
 action_list = output.split()
 organized_actions = {}
+max_t = 0
 for action_string in action_list:
     action_string = action_string + ';'
     timestep = int(re.search('\d*(?=\)\;)',action_string).group(0))
@@ -114,43 +118,55 @@ for action_string in action_list:
         'action':action,
         'action_params':action_params
     })
+    max_t = max(max_t,timestep)
 
 # init
 init_list = init.split()
-highway_list = []
-robot_list = []
-shelf_list = []
+highway_dict = {}
+robot_dict = {}
+shelf_dict = {}
 max_x = 0
 max_y = 0
 
 for init_string in init_list:
     params = [int(x) for x in re.findall('-?\d*',init_string) if x != '']
     location = False
-
     if 'highway' in init_string:
         location = True
-        highway_list.append(Highway(params[0], params[1], params[2]))
+        highway_dict[params[0]] = Highway(params[1], params[2])
     if 'robot' in init_string:
-        robot_list.append(Robot(params[0], params[1], params[2]))
+        location = True
+        robot_dict[params[0]] = Robot(params[1], params[2])
     if 'shelf' in init_string:
-        shelf_list.append(Shelf(params[0], params[1], params[2]))
-    
-    if location:
-        if params[-2] > max_x:
-            max_x = params[-2]
-        if params[-1] > max_y:
-            max_y = params[-1]
+        location = True
+        shelf_dict[params[0]] = Shelf(params[1], params[2])
 
-print(organized_actions)
-print(robot_list)
-print(shelf_list)
-print(highway_list)
-print(max_x)
-print(max_y)
+    if location:
+        max_x = max(params[-2],max_x)
+        max_y = max(params[-1],max_y)
+
 ##################################################
 # Visualize
 ##################################################
+def print_map():
+    print('--'*max_x)
+    for y in range(1,max_y+1):
+        for x in range(1,max_x+1):
+            if any((robot_dict[b].x == x and robot_dict[b].y == y) for b in robot_dict):
+                print('R ', end='')
+                # print('robot',x,y)
+            elif any((shelf_dict[s].x == x and shelf_dict[s].y == y) for s in shelf_dict):
+                print('S ', end='')
+                # print('shelf',x,y)
+            elif any((highway_dict[h].x == x and highway_dict[h].y == y) for h in highway_dict):
+                print('H ', end='')
+                # print('highway',x,y)
+            else:
+                print('  ', end='')
+        print('|')
+    print('--'*max_x)
 
-for x in range(max_x):
-    for y in range(max_y):
-        if any((bot.x = x and bot.y = y) for bot in robot_list):
+for timestep in range(max_t):
+    for action in organized_actions[timestep+1]:
+        print(action)
+    print_map()
