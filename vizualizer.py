@@ -80,9 +80,24 @@ class Robot:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.carrying = False
+        self.carrying = -1
     def __repr__(self):
         return 'Robot at ' + str(self.x) + ',' + str(self.y)
+    
+    def move(self, params):
+        self.x += params[0]
+        self.y += params[1]
+        if self.carrying != -1:
+            shelf_dict[self.carrying].x += params[0]
+            shelf_dict[self.carrying].y += params[1]
+
+    def pickup(self):
+        for s in shelf_dict:
+            if shelf_dict[s].x == self.x and shelf_dict[s].y == self.y:
+                self.carrying = s
+    
+    def putdown(self):
+        self.carrying = -1
 
 class Shelf:
     def __init__(self, x, y):
@@ -169,4 +184,10 @@ def print_map():
 for timestep in range(max_t):
     for action in organized_actions[timestep+1]:
         print(action)
+        if action['action'] == 'mo':
+            robot_dict[action['robot_id']].move(action['action_params'])
+        if action['action'] == 'pi':
+            robot_dict[action['robot_id']].pickup()
+        if action['action'] == 'pu':
+            robot_dict[action['robot_id']].putdown()
     print_map()
