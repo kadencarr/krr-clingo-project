@@ -35,4 +35,6 @@ for action_string in action_list:
     timestep = re.search('\d*(?=\)\;)',action_string).group(0)
     robot_id = re.search('\d*(?=\)\,)',action_string).group(0)
     action = re.search('(?<=\)\,)\w\w',action_string).group(0)
-    print(robot_id, timestep, action)
+    action_params = [x for x in re.findall('-?\d*',action_string) if x != ''][1:-1]
+    print(action_string)
+    print(robot_id, timestep, action, action_params)
