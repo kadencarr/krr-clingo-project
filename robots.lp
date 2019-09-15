@@ -145,13 +145,16 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % fluents are initially exogenous 
 1{robot(R, X,Y, 0):node(X,Y)}1 :- robot(R, X,Y, 0).
-% TODO ALSO THE REST OF THEM  --  e.g. 1{on(B,LL,0):location(LL)}1 :- block(B).
+1{holds(R, 0)}1 :- object(robot, R).
+1{shelf(S, X,Y, 0):node(X,Y)}1 :- shelf(S, X,Y, 0).
 
 % uniqueness and existence of value constraints
 :- not 1{node(X,Y)}1, robot(R, X,Y, T), T=0..h.
 :- not {robot(R, X,Y, T)} 1, node(X,Y), T=0..h.
 :- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
+:- {holds(R, H, T); holds(R, T)} != 1, object(robot, R), T=0..h.
+not holds(R, T) :- holds(R, H, T), T=0..h.
 
 
 %:- not 1{on(B,LL,T)}1, block(B), T=1..m.
@@ -163,6 +166,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % pickup
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
+{holds(R, H, T); holds(R, T)} :- object(robot, R), T = 0..m-1.
 
 % deliver
 {deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
@@ -175,25 +179,10 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=0..h-1.
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=0..h-1.
 {holds(R, T + 1)} :- holds(R, T), T=0..h-1.
-%{holds(R, H, T + 1)} :- holds(R, H, T), T=0..h-1.
 holds(R, S, T + 1) :- holds(R, S, T), not not holds(R, T + 1), T=0..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=0..h-1.
 
 
-
-% fluents are initially exogenous
-1{holds(R, 0)}1 :- object(robot, R).
-
-% uniqueness and existence of value constraints
-%:- not {holds(R, S, T; R, T)} = 1, object(robot, R), T=0..h.
-:- {holds(R, H, T); holds(R, T)} != 1, object(robot, R), T=0..h.
-not holds(R, T) :- holds(R, H, T), T=0..h.
-
-
-% actions are exogenous
-%{holds(R, H, T); holds(R, T)} :- object(robot, R), T = 0..m-1.
-
-% commonsense law of inertia
 
 
 
