@@ -103,10 +103,10 @@ action_list = output.split()
 organized_actions = {}
 for action_string in action_list:
     action_string = action_string + ';'
-    timestep = re.search('\d*(?=\)\;)',action_string).group(0)
-    robot_id = re.search('\d*(?=\)\,)',action_string).group(0)
+    timestep = int(re.search('\d*(?=\)\;)',action_string).group(0))
+    robot_id = int(re.search('\d*(?=\)\,)',action_string).group(0))
     action = re.search('(?<=\)\,)\w\w',action_string).group(0)
-    action_params = [x for x in re.findall('-?\d*',action_string) if x != ''][1:-1]
+    action_params = [int(x) for x in re.findall('-?\d*',action_string) if x != ''][1:-1]
     if timestep not in organized_actions:
         organized_actions[timestep] = []
     organized_actions[timestep].append({
@@ -120,15 +120,33 @@ init_list = init.split()
 highway_list = []
 robot_list = []
 shelf_list = []
+max_x = 0
+max_y = 0
+
 for init_string in init_list:
-    params = [x for x in re.findall('-?\d*',init_string) if x != '']
+    params = [int(x) for x in re.findall('-?\d*',init_string) if x != '']
+    location = False
+
     if 'highway' in init_string:
+        location = True
         highway_list.append(Highway(params[0], params[1], params[2]))
     if 'robot' in init_string:
         robot_list.append(Robot(params[0], params[1], params[2]))
     if 'shelf' in init_string:
         shelf_list.append(Shelf(params[0], params[1], params[2]))
+    
+    if location:
+        if params[-2] > max_x:
+            max_x = params[-2]
+        if params[-1] > max_y:
+            max_y = params[-1]
 
+print(organized_actions)
+print(robot_list)
+print(shelf_list)
+print(highway_list)
+print(max_x)
+print(max_y)
 ##################################################
 # Visualize
 ##################################################
