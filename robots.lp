@@ -109,8 +109,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
-%:- pickup(R, S, T), robot(R, X,Y, T), shelf(S, X,Y, T).
-shelf(S, X,Y, T) :- pickup(R, S, T), robot(R, X,Y, T).
+:- pickup(R, S, T), robot(R, X,Y, T), shelf(S, X,Y, T).
 
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T).
