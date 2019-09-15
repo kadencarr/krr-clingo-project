@@ -150,3 +150,7 @@ print(max_y)
 ##################################################
 # Visualize
 ##################################################
+
+for x in range(max_x):
+    for y in range(max_y):
+        if any((bot.x = x and bot.y = y) for bot in robot_list):
