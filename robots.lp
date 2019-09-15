@@ -157,7 +157,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 not holds(R, T) :- holds(R, H, T), T=0..h.
 
 
-%:- not 1{on(B,LL,T)}1, block(B), T=1..m.
 
 % actions are exogenous
 
@@ -166,7 +165,7 @@ not holds(R, T) :- holds(R, H, T), T=0..h.
 
 % pickup
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
-{holds(R, H, T); holds(R, T)} :- object(robot, R), T = 0..m-1.
+{holds(R, S, T); holds(R, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
 {deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
