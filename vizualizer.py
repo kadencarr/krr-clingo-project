@@ -75,7 +75,10 @@ occurs(object(robot,2),move(1,0),12)
 occurs(object(robot,1),deliver(2,2,1),13)
 """
 
+##################################################
 # Parse
+##################################################
+# output
 action_list = output.split()
 organized_actions = {}
 for action_string in action_list:
@@ -92,4 +95,9 @@ for action_string in action_list:
         'action_params':action_params
     })
 
+# init
+
+
+##################################################
 # Visualize
+##################################################
