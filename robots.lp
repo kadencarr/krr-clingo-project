@@ -6,6 +6,9 @@
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+holdable(H) :- object(shelf, H).
+holdable(nothing).
+
 % order object with indicated types available
 object(node; highway; pickingStation; robot; shelf; product; order).
 
@@ -23,7 +26,7 @@ pickingStation(P, X,Y) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 %init(object(robot,'r'),value(at,pair('x','y'))).
 robot(R, X,Y, 0) :- init(object(robot, R), value(at,pair(X,Y))).
 object(robot, R) :- init(object(robot, R), value(at,pair(X,Y))).
-holds(R, 0) :- init(object(robot, R), value(at,pair(X,Y))).
+holds(R, nothing, 0) :- init(object(robot, R), value(at,pair(X,Y))).
 
 %init(object(shelf,'s'),value(at,pair('x','y'))).
 shelf(S, X,Y, 0) :- init(object(shelf, S), value(at,pair(X,Y))).
@@ -40,7 +43,6 @@ leftToDeliver(O, I,U, 0) :- init(object(order, O), value(line,pair(I,U))).
 order(O, P) :- init(object(order, O), value(pickingStation, P)).
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % state constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,12 +56,8 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 % each robot can only hold one shelf
 :- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
-% can't hold both nothing and something
-:- holds(R, S, T), holds(R, T).
-
 % if a robot is holding a shelf, the shelf has the same location as the robot
-shelf(S, X,Y, T) :- robot(R, X,Y, T), holds(R, S, T).
-
+:- robot(R, X,Y, T), holds(R, S, T), not shelf(S, X,Y, T), S!=nothing.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,7 +69,6 @@ robot(R, X+DX,Y+DY, T+1) :- robot(R, X,Y, T), move(R, DX, DY, T).
 occurs(object(robot, R), move(DX,DY), T) :- robot(R, X,Y, T), move(R, DX, DY, T).
 
 %occurs(object(robot,’r’),pickup,’t’).
-not holds(R, T+1) :- pickup(R, S, T).
 holds(R, S, T+1) :- pickup(R, S, T).
 occurs(object(robot, R), pickup, T) :- pickup(R,S,T).
 
@@ -80,17 +77,14 @@ leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I,
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
 %occurs(object(robot,'r'), putdown,'t').
-holds(R, T + 1) :- putdown(R, S, T).
-not holds(R, S, T + 1) :- putdown(R, S, T).
+holds(R, nothing, T + 1) :- putdown(R, S, T).
 occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
-
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % action constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % move ----------------------------------------------------------------------------------------------------
 
 % can only move to an adjascent square
@@ -106,13 +100,15 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T + 1), S1 = S2.
 
 
+
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
 :- pickup(R, S, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
 
 % can't pick something up if already holding something
-:- pickup(R, S, T), holds(R, S1, T).
+:- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
+
 
 
 % deliver ----------------------------------------------------------------------------------------------------
@@ -125,7 +121,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
 % only deliver if the robot is holding a shelf that matches the order, and is at the picking station
-%deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2).
+deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2).
 
 
 
@@ -135,9 +131,11 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't put something down if it's not being carried
 :- putdown(R, S, T), not holds(R, S, T).
 
+% can't put down nothing
+:- putdown(R, S, T), holds(R, S, T), S=nothing.
+
 % can't put something down in a highway square
 :- putdown(R, S, T), robot(R, X,Y, T), highway(X,Y).
-
 
 
 
@@ -149,7 +147,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % fluents are initially exogenous 
 1{robot(R, X,Y, 0):node(X,Y)}1 :- robot(R, X,Y, 0).
-1{holds(R, 0)}1 :- object(robot, R).
+1{holds(R, nothing, 0)}1 :- object(robot, R).
 1{shelf(S, X,Y, 0):node(X,Y)}1 :- shelf(S, X,Y, 0).
 
 % uniqueness and existence of value constraints
@@ -157,9 +155,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {robot(R, X,Y, T)} 1, node(X,Y), T=0..h.
 :- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
-:- {holds(R, S, T); holds(R, T)} != 1, object(robot, R), T=0..h.
-not holds(R, T) :- holds(R, S, T), T=0..h.
-
+:- {holds(R, S, T)} != 1, object(robot, R), T=0..h.
 
 
 % actions are exogenous
@@ -180,8 +176,7 @@ not holds(R, T) :- holds(R, S, T), T=0..h.
 % everything stays where it was if no movement is indicated (commonsense law of inertia)
 {robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=0..h-1.
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=0..h-1.
-holds(R, T + 1) :- holds(R, T), not not holds(R, T + 1), T=0..h-1.
-holds(R, S, T + 1) :- holds(R, S, T), not not holds(R, S, T + 1), T=0..h-1.
+{holds(R, S, T + 1)} :- holds(R, S, T), T=0..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=0..h-1.
 
 
@@ -212,7 +207,6 @@ timeUnits(N) :- N = #count{T: move(R, DX, DY, T)}.
 
 %#show occurs/3.
 
-#show holds/2.
 #show holds/3.
 
 %#show robot/4.
